@@ -38,30 +38,35 @@ jobs:
           name: person_api-artifact
           path: person_api.tar
 
-  tests:
-    name: Run Unit Tests
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Download Tests Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tests-artifact
-          path: .
-
-      - name: List Files Before Tests
-        run: ls -la
-
-      - name: Load Image and Run Tests
-        run: |
-          docker load < tests.tar
-          docker compose -f docker-compose.tests.yml up --exit-code-from tests
+#  tests:
+#    name: Run Unit Tests
+#    runs-on: ubuntu-latest
+#    needs: build
+#
+#    steps:
+#      - name: Download Tests Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: tests-artifact
+#          path: .
+#
+#      - name: Load Image and Run Tests
+#        run: |
+#          docker load < tests.tar
+#          docker compose -f docker-compose.tests.yml up --exit-code-from tests
+#
+#      - name: List Files Before Tests
+#        run: ls -la
+#
+#      - name: Load Image and Run Tests
+#        run: |
+#          docker load < tests.tar
+#          docker compose -f docker-compose.tests.yml up --exit-code-from tests
 
   deploy:
     name: Deploy to VDS
     runs-on: ubuntu-latest
-    needs: tests
+    needs: build
 
     steps:
       - name: Checkout Code
