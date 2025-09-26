@@ -70,7 +70,7 @@ jobs:
 
       - name: Set OpenAPI host
         run: |
-          sed -i "s|http://localhost:8080|http://${{ secrets.HOST }}:8080|g" person-service.yaml
+          sed -i "s|http://localhost:8080|http://${{ secrets.HOST }}:8080|g" ./person-service.yaml
 
       - name: List files before deploy
         run: ls -la
