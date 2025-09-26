@@ -129,6 +129,9 @@ func (h *PersonHandler) UpdatePerson(c *gin.Context) {
 	if req.Work != nil {
 		person.Work = req.Work
 	}
+	if req.Name != nil {
+		person.Name = req.Name
+	}
 
 	personResponse, err := h.service.Update(c.Request.Context(), id, *person)
 	if err != nil {

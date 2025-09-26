@@ -61,7 +61,7 @@ func (s *PersonService) List(ctx context.Context) ([]dto.PersonResponse, error) 
 	for i, p := range persons {
 		resp[i] = dto.PersonResponse{
 			ID:      p.ID,
-			Name:    p.Name,
+			Name:    &p.Name,
 			Age:     p.Age,
 			Address: p.Address,
 			Work:    p.Work,
@@ -82,7 +82,7 @@ func (s *PersonService) Get(ctx context.Context, id uint64) (*dto.PersonResponse
 
 	return &dto.PersonResponse{
 		ID:      p.ID,
-		Name:    p.Name,
+		Name:    &p.Name,
 		Age:     p.Age,
 		Address: p.Address,
 		Work:    p.Work,
@@ -93,6 +93,9 @@ func (s *PersonService) Update(ctx context.Context, id uint64, req dto.PersonRes
 	p, err := s.repo.Fetch(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if req.Name != nil {
+		p.Name = *req.Name
 	}
 	if req.Age != nil {
 		p.Age = req.Age
@@ -112,7 +115,7 @@ func (s *PersonService) Update(ctx context.Context, id uint64, req dto.PersonRes
 
 	return &dto.PersonResponse{
 		ID:      p.ID,
-		Name:    p.Name,
+		Name:    &p.Name,
 		Age:     p.Age,
 		Address: p.Address,
 		Work:    p.Work,
