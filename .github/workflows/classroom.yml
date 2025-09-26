@@ -49,8 +49,13 @@ jobs:
         with:
           name: tests-artifact
 
+      - name: Copy docker-compose.tests.yml
+        run: cp docker-compose.tests.yml ./workspace/
+
       - name: List files before deploy
         run: ls -la
+
+
 
       - name: Load image and run tests
         run: |
