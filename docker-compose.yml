@@ -1,18 +1,31 @@
-version: "3"
 services:
-  postgres:
-    image: library/postgres:13
+  db:
+    image: postgres:17
     container_name: postgres
-    restart: on-failure
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./postgres/:/docker-entrypoint-initdb.d/
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: persons
     ports:
       - "5432:5432"
+    restart: on-failure
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./postgres/:/docker-entrypoint-initdb.d/
+  app:
+    build: .
+    container_name: person-service
+    ports:
+      - "8080:8080"
+    environment:
+      DB_CONN_STRING: "postgres://postgres:password@postgres/persons"
+      SERVER_PORT: 8080
+      SERVER_HOST: 0.0.0.0
+#    restart: unless-stopped
+    depends_on:
+      - db
+
+    volumes:
+      - ./person-service.yaml:/person-service.yaml:ro
 
 volumes:
-  db-data:
+  pg-data:
