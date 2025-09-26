@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"lab1-rsoi/internal/dto"
 	"lab1-rsoi/internal/service"
 	"net/http"
@@ -48,13 +49,8 @@ func (h *PersonHandler) CreatePerson(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, dto.PersonResponse{
-		ID:      id,
-		Name:    person.Name,
-		Age:     person.Age,
-		Address: person.Address,
-		Work:    person.Work,
-	})
+	c.Header("Location", fmt.Sprintf("/persons/%d", id))
+	c.Status(http.StatusCreated)
 }
 
 func (h *PersonHandler) ListPersons(c *gin.Context) {
