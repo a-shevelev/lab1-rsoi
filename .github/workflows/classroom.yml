@@ -38,64 +38,64 @@ jobs:
           name: person_api-artifact
           path: person_api.tar
 
-    test:
-      name: Run Unit Tests
-      runs-on: ubuntu-latest
-      needs: build
+  tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
 
-      steps:
-        - name: Download tests artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: tests-artifact
+    steps:
+      - name: Download tests artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tests-artifact
 
-        - name: Load image and run tests
-          run: |
-            docker load < tests.tar
-            docker run --rm tests:latest
+      - name: Load image and run tests
+        run: |
+          docker load < tests.tar
+          docker run --rm tests:latest
 
-    deploy:
-      name: Deploy to VDS
-      runs-on: ubuntu-latest
-      needs: test
+  deploy:
+    name: Deploy to VDS
+    runs-on: ubuntu-latest
+    needs: tests
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-        - name: Download api artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: person_api-artifact
+      - name: Download api artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: person_api-artifact
 
-        - name: Set OpenAPI host
-          run: |
-            sed -i "s|http://localhost:8080|http://${{ secrets.HOST }}:8080|g" person-service.yaml
+      - name: Set OpenAPI host
+        run: |
+          sed -i "s|http://localhost:8080|http://${{ secrets.HOST }}:8080|g" person-service.yaml
 
-        - name: Copy files to VDS
-          uses: appleboy/scp-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.USERNAME }}
-            port: ${{ secrets.PORT }}
-            key: ${{ secrets.SSH_KEY }}
-            source: |
-              docker-compose.yml
-              person-service.yaml
-              person_api.tar
-            target: "/var/www/lab1-rsoi"
+      - name: Copy files to VDS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          source: |
+            docker-compose.yml
+            person-service.yaml
+            person_api.tar
+          target: "/var/www/lab1-rsoi"
 
-        - name: Restart containers on VDS
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.USERNAME }}
-            port: ${{ secrets.PORT }}
-            key: ${{ secrets.SSH_KEY }}
-            script: |
-              cd /var/www/lab1-rsoi
-              docker load < person_api.tar
-              docker compose down || true
-              docker compose up -d
+      - name: Restart containers on VDS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/lab1-rsoi
+            docker load < person_api.tar
+            docker compose down || true
+            docker compose up -d
