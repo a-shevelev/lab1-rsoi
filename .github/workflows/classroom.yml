@@ -85,10 +85,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
-          source: |
-            docker-compose.yml
-            person-service.yaml
-            person_api.tar
+          source: docker-compose.yml person-service.yaml person_api.tar
           target: "/var/www/lab1-rsoi"
 
       - name: Restart containers on VDS
