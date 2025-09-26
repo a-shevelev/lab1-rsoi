@@ -49,9 +49,6 @@ jobs:
         with:
           name: tests-artifact
 
-      - name: Copy docker-compose.tests.yml
-        run: cp docker-compose.tests.yml ./workspace/
-
       - name: List files before deploy
         run: ls -la
 
@@ -60,7 +57,7 @@ jobs:
       - name: Load image and run tests
         run: |
           docker load < tests.tar
-          docker compose -f docker-compose.tests.yml up --exit-code-from tests
+           docker compose -f $GITHUB_WORKSPACE/docker-compose.tests.yml up --exit-code-from tests
 
   deploy:
     name: Deploy to VDS
