@@ -1,40 +1,37 @@
-name: GitHub Classroom Workflow
+name: Deploy and Test
+
 on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
+
 jobs:
-  build:
-    name: Autograding
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Copy files to VDS
+        uses: appleboy/scp-action@master
         with:
-          fetch-depth: 0
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          source: "."
+          target: "/var/www/lab1-rsoi"
 
-      # TODO build, test and deploy project
-
-      - name: Run API Tests
-        uses: matt-ball/newman-action@master
+      - name: Restart containers on VDS
+        uses: appleboy/ssh-action@master
         with:
-          collection: postman/[inst] Lab1.postman_collection.json
-          environment: postman/[inst][heroku] Lab1.postman_environment.json
-          delayRequest: 100
-          reporters: '[ "cli" ]'
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            cd /var/www/lab1-rsoi
+            docker compose down || true
+            docker compose up -d --build
 
-      - name: Autograding
-        uses: education/autograding@v1
-        continue-on-error: true
-
-      - name: Github auto grader mark
-        uses: Romanow/google-sheet-autograder-marker@v1.0
-        with:
-          google_token: ${{secrets.GOOGLE_API_KEY}}
-          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
-          homework_number: 1
-          user_column: 'D'
-          column_offset: 'F'
-          mark: "'+"
