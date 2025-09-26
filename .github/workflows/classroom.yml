@@ -69,6 +69,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: person_api-artifact
+          path: .
 
       - name: Set OpenAPI host
         run: |
