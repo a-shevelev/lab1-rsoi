@@ -1,4 +1,4 @@
-name: Deploy and Test
+name: GitHub Classroom Workflow
 
 on:
   push:
@@ -6,36 +6,96 @@ on:
       - master
 
 jobs:
-  deploy:
+  build:
+    name: Build images
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - name: Set OpenAPI host
+      - name: Build tests image
         run: |
-          sed -i "s|http://localhost:8080|http://${{ secrets.HOST }}:8080|g" person-service.yaml
+          docker build -t tests:latest -f ./Dockerfile . --target=tests
+          docker save tests:latest > tests.tar
 
-      - name: Copy files  to VDS
-        uses: appleboy/scp-action@master
+      - name: Build release image
+        run: |
+          docker build -t person_api:latest -f ./Dockerfile . --target=release
+          docker save person_api:latest > person_api.tar
+
+      - name: Upload tests artifact
+        uses: actions/upload-artifact@v4
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "."
-          target: "/var/www/lab1-rsoi"
+          name: tests-artifact
+          path: tests.tar
 
-      - name: Restart containers on VDS
-        uses: appleboy/ssh-action@master
+      - name: Upload api artifact
+        uses: actions/upload-artifact@v4
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /var/www/lab1-rsoi
-            docker compose down || true
-            docker compose up -d --build
+          name: person_api-artifact
+          path: person_api.tar
 
+    test:
+      name: Run Unit Tests
+      runs-on: ubuntu-latest
+      needs: build
+
+      steps:
+        - name: Download tests artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: tests-artifact
+
+        - name: Load image and run tests
+          run: |
+            docker load < tests.tar
+            docker run --rm tests:latest
+
+    deploy:
+      name: Deploy to VDS
+      runs-on: ubuntu-latest
+      needs: test
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+
+        - name: Download api artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: person_api-artifact
+
+        - name: Set OpenAPI host
+          run: |
+            sed -i "s|http://localhost:8080|http://${{ secrets.HOST }}:8080|g" person-service.yaml
+
+        - name: Copy files to VDS
+          uses: appleboy/scp-action@master
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.USERNAME }}
+            port: ${{ secrets.PORT }}
+            key: ${{ secrets.SSH_KEY }}
+            source: |
+              docker-compose.yml
+              person-service.yaml
+              person_api.tar
+            target: "/var/www/lab1-rsoi"
+
+        - name: Restart containers on VDS
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.USERNAME }}
+            port: ${{ secrets.PORT }}
+            key: ${{ secrets.SSH_KEY }}
+            script: |
+              cd /var/www/lab1-rsoi
+              docker load < person_api.tar
+              docker compose down || true
+              docker compose up -d

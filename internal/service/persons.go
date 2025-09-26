@@ -8,6 +8,13 @@ import (
 	"lab1-rsoi/internal/repo"
 )
 
+type PersonServiceIface interface {
+	Create(ctx context.Context, req *dto.CreatePersonRequest) (uint64, error)
+	List(ctx context.Context) ([]dto.PersonResponse, error)
+	Get(ctx context.Context, id uint64) (*dto.PersonResponse, error)
+	Update(ctx context.Context, id uint64, req dto.PersonResponse) (*dto.PersonResponse, error)
+	Delete(ctx context.Context, id uint64) error
+}
 type PersonService struct {
 	repo repo.PersonRepository
 }

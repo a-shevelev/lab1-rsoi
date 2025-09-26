@@ -15,8 +15,9 @@ WORKDIR /app/cmd/app
 
 RUN CGO_ENABLED=0 go build -o /server .
 
-FROM scratch AS run
+FROM build AS tests
+CMD ["go", "test", "./..."]
 
+FROM scratch AS release
 COPY --from=build /server /server
-
 ENTRYPOINT ["/server"]

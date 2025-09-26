@@ -11,13 +11,12 @@ import (
 )
 
 type PersonHandler struct {
-	service *service.PersonService
+	service service.PersonServiceIface
 }
 
-func New(service *service.PersonService) *PersonHandler {
+func New(service service.PersonServiceIface) *PersonHandler {
 	return &PersonHandler{service: service}
 }
-
 func (h *PersonHandler) RegisterRoutes(rg *gin.RouterGroup) {
 	personRoutes := rg.Group("/persons")
 	{
@@ -49,7 +48,7 @@ func (h *PersonHandler) CreatePerson(c *gin.Context) {
 		return
 	}
 
-	c.Header("Location", fmt.Sprintf("/persons/%d", id))
+	c.Header("Location", fmt.Sprintf("/api/v1/persons/%d", id))
 	c.Status(http.StatusCreated)
 }
 
