@@ -5,8 +5,6 @@ services:
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: persons
-    ports:
-      - "5432:5432"
     restart: on-failure
     volumes:
       - pg-data:/var/lib/postgresql/data
