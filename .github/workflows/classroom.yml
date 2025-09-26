@@ -49,6 +49,9 @@ jobs:
         with:
           name: tests-artifact
 
+      - name: List files before deploy
+        run: ls -la
+
       - name: Load image and run tests
         run: |
           docker load < tests.tar
