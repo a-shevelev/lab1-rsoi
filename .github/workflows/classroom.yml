@@ -61,7 +61,7 @@ jobs:
   deploy:
     name: Deploy to VDS
     runs-on: ubuntu-latest
-    needs: build
+    needs: tests
 
     steps:
       - name: Checkout Code
