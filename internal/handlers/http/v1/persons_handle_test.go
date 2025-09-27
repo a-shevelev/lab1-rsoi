@@ -52,8 +52,6 @@ func setupRouter(h *v1.PersonHandler) *gin.Engine {
 
 func ptr[T any](v T) *T { return &v }
 
-// ---- TESTS ----
-
 func TestCreatePerson_Success(t *testing.T) {
 	mockSvc := &mockPersonService{
 		CreateFn: func(ctx context.Context, req *dto.CreatePersonRequest) (uint64, error) {
@@ -93,8 +91,8 @@ func TestListPersons_Success(t *testing.T) {
 	mockSvc := &mockPersonService{
 		ListFn: func(ctx context.Context) ([]dto.PersonResponse, error) {
 			return []dto.PersonResponse{
-				{ID: 1, Name: "John", Age: ptr(25)},
-				{ID: 2, Name: "Jane", Age: ptr(30)},
+				{ID: 1, Name: ptr("John"), Age: ptr(25)},
+				{ID: 2, Name: ptr("Jane"), Age: ptr(30)},
 			}, nil
 		},
 	}
@@ -111,7 +109,7 @@ func TestListPersons_Success(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &persons)
 	assert.NoError(t, err)
 	assert.Len(t, persons, 2)
-	assert.Equal(t, "John", persons[0].Name)
+	assert.Equal(t, "John", *persons[0].Name)
 }
 
 func TestGetPerson_NotFound(t *testing.T) {
